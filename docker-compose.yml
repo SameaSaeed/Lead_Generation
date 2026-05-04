@@ -1,0 +1,25 @@
+services:
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: leadgen_api
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    environment:
+      - SERP_API_KEY=${SERP_API_KEY}
+
+  ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.streamlit
+    container_name: leadgen_ui
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api
+    environment:
+      - API_URL=http://api:8000
