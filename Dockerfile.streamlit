@@ -1,26 +1,21 @@
 FROM python:3.11-slim
 
-# Clean Python behavior
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# Install minimal build deps only if needed
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Cache dependencies layer
 COPY requirements.txt .
 
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy app
 COPY . .
 
-# Remove build tools to shrink image
 RUN apt-get purge -y build-essential && apt-get autoremove -y
 
 EXPOSE 8501
