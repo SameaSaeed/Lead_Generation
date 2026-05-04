@@ -6,7 +6,6 @@ from logger import logger
 from scrapers import fetch_yellowpages, fetch_serp
 from utils import normalize_text, extract_emails, make_domain
 from scoring import score_lead, buying_intent_score
-from ml import semantic_icp
 
 async def generate_leads(query, pages=2):
 
@@ -62,7 +61,7 @@ async def generate_leads(query, pages=2):
 
     df["domain_guess"] = df["company_name"].apply(make_domain)
 
-    df = semantic_icp(df)
+    # df = semantic_icp(df)
 
     df["key"] = df["company_name"].apply(normalize_text)
     df = df.drop_duplicates("key").drop(columns=["key"])
