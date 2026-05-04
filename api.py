@@ -11,39 +11,46 @@ logging.basicConfig(level=logging.INFO)
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {
+        "status": "ok",
+        "service": "leadgen-api"
+    }
 
 
 @app.get("/leads")
 async def get_leads(
-    query: str = Query(..., description="Search keyword e.g. solar installers"),
+    query: str = Query(...),
     pages: int = Query(2, ge=1, le=5)
 ):
-    try:
-        logger.info(f"Incoming request: query={query}, pages={pages}")
 
+    try:
         df = await asyncio.wait_for(
             generate_leads(query, pages),
-            timeout=120  # prevents hanging requests
+            timeout=120
         )
 
-        if df is None or df.empty:
-            return {
-                "status": "success",
-                "count": 0,
-                "leads": []
-            }
+        leads = [] if df is None or df.empty else df.to_dict(orient="records")
 
         return {
             "status": "success",
-            "count": len(df),
-            "leads": df.to_dict(orient="records")
+            "count": len(leads),
+            "leads": leads
         }
 
     except asyncio.TimeoutError:
-        logger.error("Pipeline timeout")
-        raise HTTPException(status_code=504, detail="Lead generation timeout")
+        return {
+            "status": "error",
+            "error": "timeout",
+            "count": 0,
+            "leads": []
+        }
 
     except Exception as e:
-        logger.exception("API failed")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("API crashed")
+
+        return {
+            "status": "error",
+            "error": str(e),
+            "count": 0,
+            "leads": []
+        }
