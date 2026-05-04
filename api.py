@@ -9,7 +9,7 @@ logger = logging.getLogger("api")
 logging.basicConfig(level=logging.INFO)
 
 
-@app.get("/health")
+@app.get("/")
 def health():
     return {
         "status": "ok",
